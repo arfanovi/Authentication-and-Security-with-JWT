@@ -1,0 +1,10 @@
+
+
+Authentication and Security 
+
+> level of Security and Authentication
+
+> Register > email, password, database 
+> Sign-in > email, password - match in database -> If, yes , then user have access to the website.
+
+> 
