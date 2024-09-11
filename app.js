@@ -9,14 +9,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 // import md5 from 'md5';
-const md5 = require('md5');
+// const md5 = require('md5');
 
-
+// Import Bcrypt 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 // const db = process.env.mongo_url;
 const User = require('./model/user')
+
 const db = 'mongodb://localhost:27017'
 // const db = 'mongodb+srv://arfan:arfan201@cluster0.p0yid.mongodb.net/'
 require('dotenv').config()
@@ -49,13 +52,15 @@ app.get('/', (req, res) =>{
 // User Registration
 app.post("/register", async(req, res) =>{
     try {
-        const newUser = new User({
-            email: req.body.email,
-            password: md5(req.body.password)
+        bcrypt.hash(req.body.password, saltRounds, async function(err, hash) {
+            const newUser = new User({
+                email: req.body.email,
+                password: hash,
+                // password: md5(req.body.password)
+            });
+            await newUser.save();
+            res.status(201).json({message: "User Created"})
         });
-        await newUser.save();
-        res.status(201).json({message: "User Created"})
-
     } catch (error){
         res.status(500).json({message: error.message})
     }
@@ -68,12 +73,22 @@ app.post("/register", async(req, res) =>{
 app.post('/login', async (req, res) =>{
     try{
        const email = req.body.email;
-       const password = md5(req.body.password);
-
+       const password = req.body.password;
+    //    const password = md5(req.body.password);
         const user = await User.findOne({email: email});
 
-        if(user && user.password === password){
-            res.status(200).json({message: "Login Success"})
+        if(user){
+            // Load hash from your password DB.
+            bcrypt.compare(password, user.password, function(err, result) {
+                // result == true
+                if(result === true){
+                    // Passwords match
+                    res.status(200).json({message: "Login Success"})                
+                } else {
+                    // Passwords don't match
+                    console.log('Password not match')
+                }
+            });
         } else {
             res.status(401).json({message: "Invalid Credentials"})
         }
@@ -85,6 +100,7 @@ app.post('/login', async (req, res) =>{
 
 // console.log(req.body)
 
+// Route Handle 
 app.use((req, res, next) =>{
     res.status(404).json({
         message: "Route Not Found"
