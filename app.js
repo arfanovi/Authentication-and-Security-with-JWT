@@ -1,10 +1,17 @@
 // Database Encryption 
 
 
+// hashing password 
+
 const { error } = require('console');
 const express = require('express');
 // const cors = require('cors');
 const mongoose = require('mongoose');
+
+// import md5 from 'md5';
+const md5 = require('md5');
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,7 +49,10 @@ app.get('/', (req, res) =>{
 // User Registration
 app.post("/register", async(req, res) =>{
     try {
-        const newUser = new User(req.body);
+        const newUser = new User({
+            email: req.body.email,
+            password: md5(req.body.password)
+        });
         await newUser.save();
         res.status(201).json({message: "User Created"})
 
@@ -57,8 +67,11 @@ app.post("/register", async(req, res) =>{
 // User Login 
 app.post('/login', async (req, res) =>{
     try{
-        const {email, password} = req.body;
+       const email = req.body.email;
+       const password = md5(req.body.password);
+
         const user = await User.findOne({email: email});
+
         if(user && user.password === password){
             res.status(200).json({message: "Login Success"})
         } else {
