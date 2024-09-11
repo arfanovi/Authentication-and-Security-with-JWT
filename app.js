@@ -1,3 +1,6 @@
+// Database Encryption 
+
+
 const { error } = require('console');
 const express = require('express');
 // const cors = require('cors');
@@ -44,7 +47,7 @@ app.post("/register", async(req, res) =>{
         res.status(201).json({message: "User Created"})
 
     } catch (error){
-        res.status(409).json({message: error.message})
+        res.status(500).json({message: error.message})
     }
 })
 
@@ -52,16 +55,15 @@ app.post("/register", async(req, res) =>{
 
 
 // User Login 
-app.post('/login', (req, res) =>{
+app.post('/login', async (req, res) =>{
     try{
         const {email, password} = req.body;
-        const user = User.findOne({email: email});
+        const user = await User.findOne({email: email});
         if(user && user.password === password){
             res.status(200).json({message: "Login Success"})
         } else {
             res.status(401).json({message: "Invalid Credentials"})
         }
-
     } catch (error){
         res.status(500).json({message: error.message})
     }
